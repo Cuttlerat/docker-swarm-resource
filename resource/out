@@ -8,14 +8,16 @@ INPUT='/tmp/input'
 
 cat > "${INPUT}" <&0 
 
+cd $1
+
 SWARM_MASTER=$(jq -r '.source.swarm_master      // ""' "${INPUT}")
 USERNAME=$(    jq -r '.source.registry_username // ""' "${INPUT}")
 PASSWORD=$(    jq -r '.source.registry_password // ""' "${INPUT}")
-TAG_FILE=$(    jq -r '.source.registry_tag_file // ""' "${INPUT}")
-TAG=$(         jq -r '.source.registry_tag      // ""' "${INPUT}")
 REGISTRY=$(    jq -r '.source.registry          // ""' "${INPUT}")
 SERVICE_NAME=$(jq -r '.params.service_name      // ""' "${INPUT}")
 IMAGE=$(       jq -r '.params.image             // ""' "${INPUT}")
+TAG_FILE=$(    jq -r '.params.tag_file          // ""' "${INPUT}")
+TAG=$(         jq -r '.params.tag               // ""' "${INPUT}")
 
 export DOCKER_HOST="tcp://${SWARM_MASTER}"
 
@@ -24,8 +26,8 @@ export DOCKER_HOST="tcp://${SWARM_MASTER}"
 [ ! -z "${REGISTRY}" ] &&\
 [ ! -z "${USERNAME}" ] &&\
 [ ! -z "${PASSWORD}" ] &&\
+
 docker login -p "${PASSWORD}" -u "${USERNAME}" "${REGISTRY}"
 docker service update --image "${IMAGE}":"${TAG}" "${SERVICE_NAME}" --with-registry-auth
 
 echo "{ \"version\": { \"ref\": \"${BUILD_ID}\" } }" >&3
-
